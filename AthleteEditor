@@ -1,0 +1,41 @@
+import React, { useEffect, useState } from 'react';
+import { TextField, Button, Box, MenuItem } from '@mui/material';
+import { useNavigate, useParams } from 'react-router-dom';
+import api from '../services/api';
+
+export default function AthleteEditor() {
+  const { id } = useParams();
+  const [name, setName] = useState('');
+  const [dob, setDob] = useState('');
+  const [position, setPosition] = useState('');
+  const [teamId, setTeamId] = useState('');
+  const [teams, setTeams] = useState([]);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    api.get('/teams').then(res => setTeams(res.data)).catch(console.error);
+    if (id) api.get(`/athletes/${id}`).then(res => {
+      setName(res.data.name); setDob(res.data.dob || ''); setPosition(res.data.position || ''); setTeamId(res.data.teamId || '');
+    }).catch(console.error);
+  }, [id]);
+
+  async function save() {
+    const body = { name, dob, position, teamId: teamId || null };
+    if (id) await api.put(`/athletes/${id}`, body);
+    else await api.post('/athletes', body);
+    navigate('/athletes');
+  }
+
+  return (
+    <Box maxWidth={600}>
+      <TextField fullWidth label="Name" value={name} onChange={e => setName(e.target.value)} sx={{ mb: 2 }} />
+      <TextField fullWidth label="DOB" value={dob} onChange={e => setDob(e.target.value)} sx={{ mb: 2 }} />
+      <TextField fullWidth label="Position" value={position} onChange={e => setPosition(e.target.value)} sx={{ mb: 2 }} />
+      <TextField select fullWidth label="Team" value={teamId} onChange={e => setTeamId(e.target.value)} sx={{ mb: 2 }}>
+        <MenuItem value=""><em>None</em></MenuItem>
+        {teams.map(t => <MenuItem key={t.id} value={t.id}>{t.name}</MenuItem>)}
+      </TextField>
+      <Button variant="contained" onClick={save}>Save</Button>
+    </Box>
+  );
+}

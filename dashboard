@@ -1,0 +1,47 @@
+// src/Dashboard.js
+import React, { useEffect, useState } from 'react';
+import { Box, Paper, Typography, Grid } from '@mui/material';
+import api from './services/api';
+
+export default function Dashboard() {
+  const [counts, setCounts] = useState({ teams: 0, athletes: 0, workouts: 0 });
+
+  useEffect(() => {
+    async function load() {
+      try {
+        const [teamsRes, athletesRes, workoutsRes] = await Promise.all([
+          api.get('/teams'),
+          api.get('/athletes'),
+          api.get('/workouts'),
+        ]);
+        setCounts({ teams: teamsRes.data.length, athletes: athletesRes.data.length, workouts: workoutsRes.data.length });
+      } catch (err) {
+        // ignore for now
+      }
+    }
+    load();
+  }, []);
+
+  return (
+    <Grid container spacing={2}>
+      <Grid item xs={12} sm={4}>
+        <Paper sx={{ p: 2 }}>
+          <Typography variant="h6">Teams</Typography>
+          <Typography variant="h4">{counts.teams}</Typography>
+        </Paper>
+      </Grid>
+      <Grid item xs={12} sm={4}>
+        <Paper sx={{ p: 2 }}>
+          <Typography variant="h6">Athletes</Typography>
+          <Typography variant="h4">{counts.athletes}</Typography>
+        </Paper>
+      </Grid>
+      <Grid item xs={12} sm={4}>
+        <Paper sx={{ p: 2 }}>
+          <Typography variant="h6">Workouts</Typography>
+          <Typography variant="h4">{counts.workouts}</Typography>
+        </Paper>
+      </Grid>
+    </Grid>
+  );
+}
